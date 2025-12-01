@@ -1,10 +1,19 @@
 const std = @import("std");
+const aoc = @import("aoc.zig");
 
 pub fn main() !void {
-    var lines = try readFileByLines();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+        
+    const buf = try aoc.readFileByLines(allocator);
+    defer allocator.free(buf);
+
+    var lines = std.mem.splitScalar(u8, buf, '\n');
+
     const res1 = try part1(&lines);
-    var lines2 = try readFileByLines();
-    const res2 = try part2(&lines2);
+    lines.reset();
+    const res2 = try part2(&lines);
 
     std.debug.print("{any}\n", .{res1});
     std.debug.print("{any}\n", .{res2});
@@ -20,19 +29,13 @@ pub fn part1(lines:  *std.mem.SplitIterator(u8, std.mem.DelimiterType.scalar)) !
         const dir = line[0];
         var rot = try std.fmt.parseInt(i32, line[1..], 10);
         rot = @mod(rot, 100);
-        if (dir == 'L') {
-            rot = rot * -1;
-        }
+        if (dir == 'L') rot = rot * -1;
         cur += rot;
-        if (cur < 0) {
-            cur += 100;
-        }
-        cur = @mod(cur, 100);
+        cur = @mod(cur+100, 100);
         if (cur == 0) {
             res += 1;
         }
     }
-    lines.reset();
 
     return res;
 }
@@ -68,17 +71,4 @@ pub fn part2(lines:  *std.mem.SplitIterator(u8, std.mem.DelimiterType.scalar)) !
     }
 
     return res;
-}
-
-pub fn readFileByLines() !std.mem.SplitIterator(u8, std.mem.DelimiterType.scalar) {
-    const file = try std.fs.cwd().openFile("day1_input", .{});
-    defer file.close();
-
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const res = try file.readToEndAlloc(allocator,1000000);
-
-    return std.mem.splitScalar(u8, res, '\n');
 }
