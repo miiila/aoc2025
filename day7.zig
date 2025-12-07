@@ -74,6 +74,7 @@ pub fn part2(lines:  [][]u8, allocator: std.mem.Allocator) !u64 {
     var res: u64 = 0;
     const Coords = struct {x: usize, y: usize};
     var hm = std.AutoHashMap(Coords, u64).init(allocator);
+    defer hm.deinit();
 
     for (lines,0..) |r, y| {
         if (y == 0) continue;
